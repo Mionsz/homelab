@@ -1,17 +1,44 @@
-- name: Install packages for automatic upgrade
-  ansible.builtin.dnf:
+---
+- name: Install python-pip
+  ansible.builtin.package:
     name:
-      - dnf-automatic
-      - dnf-utils
+      - python3-dev
+      - python3-pip
+      - python3-apt
+      - software-properties-common
+      - apache2-utils
+    state: present
+    update_cache: true
+  become: true
 
-- name: Copy automatic upgrade config file
-  ansible.builtin.copy:
-    src: automatic.conf
-    dest: /etc/dnf/automatic.conf
-    mode: 0644
+- name: Install kubernetes >= 12
+  ansible.builtin.pip:
+    name:
+      - kubernetes >= 24.0
+      - ansible >= 6.4
+      - boto3 ~= 1.24
+      - botocore >= 1.27
+      - docker >= 6.0
+      - jinja2 >= 3.0
+      - jmespath ~= 1.0
+      - minio >= 7.1
+      - openshift ~= 0.13
+      - xlsxwriter ~= 3.0
+      - cryptography
+      - netaddr
+      - ipaddr
+      - pbr
+      - pipenv
+  become: true
 
-- name: Enable automatic upgrade service
-  ansible.builtin.systemd:
-    name: dnf-automatic.timer
-    state: started
-    enabled: true
+# - name: Copy automatic upgrade config file
+#   ansible.builtin.copy:
+#     src: automatic.conf
+#     dest: /etc/dnf/automatic.conf
+#     mode: 0644
+
+# - name: Enable automatic upgrade service
+#   ansible.builtin.systemd:
+#     name: dnf-automatic.timer
+#     state: started
+#     enabled: true

@@ -25,6 +25,8 @@
     - /etc/rancher/k3s
     - /etc/rancher/node
     - "{{ k3s_data_dir }}/agent/pod-manifests"
+    - /etc/systemd/system/k3s.service.d
+    - /etc/systemd/system/k3s-agent.service.d
 
 - name: Check if k3s token file exists on the first node
   run_once: true
@@ -62,6 +64,10 @@
       dest: "{{ k3s_config_file }}"
     - src: k3s.service.j2
       dest: "{{ k3s_service_file }}"
+    - src: proxy.conf.j2
+      dest: /etc/systemd/system/k3s.service.d/proxy.conf
+    - src: proxy.conf.j2
+      dest: /etc/systemd/system/k3s-agent.service.d/proxy.conf
 
 - name: Copy kube-vip manifests
   when: "'masters' in group_names"

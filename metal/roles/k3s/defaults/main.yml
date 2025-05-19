@@ -16,3 +16,7 @@ k3s_server_config:
   disable-network-policy: true
   flannel-backend: none
   secrets-encryption: true
+proxy:
+  http_proxy: http://proxy-mu.intel.com:912
+  https_proxy: http://proxy-mu.intel.com:912
+  no_proxy: caas.intel.com,vsval.intel.com,.vsval.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,cluster.local,127.0.0.0/8,172.16.0.0/12,134.134.0.0/16

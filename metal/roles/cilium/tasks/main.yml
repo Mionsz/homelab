@@ -1,3 +1,4 @@
+---
 - name: Install Cilium
   kubernetes.core.helm:
     name: cilium

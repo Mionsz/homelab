@@ -1,3 +1,49 @@
+---
+- name: 'Disable named'
+  ansible.builtin.service:
+    name: named
+    state: stopped
+    enabled: no
+  failed_when: false
+  become: true
+
+- name: 'Disable SWAP'
+  ansible.builtin.command: swapoff -a
+  become: true
+
+- name: 'Get local time'
+  ansible.builtin.command: date -Ins
+  register: datetime
+  delegate_to: localhost
+  when: k8s_sync_time | default('true') | bool
+
+- name: 'Syncronize date time'
+  command: "date -Ins -s '{{ datetime.stdout }}'"
+  become: true
+  when: k8s_sync_time | default('true') | bool
+
+- name: 'Disable SWAP in fstab'
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].*\s+swap\s+sw\s+.*)$'
+    replace: '# \1'
+  become: true
+
+- name: 'Modprobe overlay and br_netfilter'
+  ansible.builtin.shell: |
+    modprobe overlay
+    modprobe br_netfilter
+  become: true
+
+- name: 'Add conf for containerd'
+  ansible.builtin.blockinfile:
+    path: "/etc/modules-load.d/containerd.conf"
+    block: |
+      overlay
+      br_netfilter
+    create: true
+  become: true
+
 - name: Adjust kernel parameters
   ansible.posix.sysctl:
     name: "{{ item.name }}"
@@ -6,3 +52,20 @@
     - {name: "fs.inotify.max_queued_events", value: 16384}
     - {name: "fs.inotify.max_user_instances", value: 8192}
     - {name: "fs.inotify.max_user_watches", value: 524288}
+    - {name: "net.bridge.bridge-nf-call-iptables", value: 1}
+    - {name: "net.ipv4.ip_forward", value: 1}
+    - {name: "net.bridge.bridge-nf-call-ip6tables", value: 1}
+
+- name: 'Add conf for kubernetes-cri'
+  ansible.builtin.blockinfile:
+    path: "/etc/sysctl.d/99-kubernetes-cri.conf"
+    block: |
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+    create: true
+  become: true
+
+- name: 'Apply new settings'
+  ansible.builtin.command: sysctl --system
+  become: true

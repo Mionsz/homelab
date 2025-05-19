@@ -1,0 +1,22 @@
+---
+- name: 'Add the k8s repository'
+  ansible.builtin.yum_repository:
+    name: k8s
+    description: k8s installation
+    baseurl: "{{ k8s_repo_url['centos'] }}"
+    gpgkey: "{{ k8s_repo_key_url['centos'] }}"
+  become: true
+
+- name: 'Install kubeadm, kubelet, and kubectl'
+  ansible.builtin.yum:
+    name:
+    - "kubeadm-{{ k8s_version }}-*"
+    - "kubelet-{{ k8s_version }}-*"
+    - "kubectl-{{ k8s_version }}-*"
+    allow_downgrade: yes
+    state: present
+  become: true
+  register: yumrc
+  until: yumrc is success
+  retries: 5
+  delay: 10
