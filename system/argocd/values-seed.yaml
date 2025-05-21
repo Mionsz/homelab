@@ -12,17 +12,4 @@ argo-cd:
     metrics: *metrics
 argocd-apps:
   applicationsets:
-    root:
-      generators:
-        - git:
-            repoURL: &repoURL https://github.com/khuedoan/homelab
-            revision: &revision master
-            directories:
-              - path: system/*
-              - path: platform/*
-              - path: apps/*
-      template:
-        spec:
-          source:
-            repoURL: *repoURL
-            targetRevision: *revision
+
