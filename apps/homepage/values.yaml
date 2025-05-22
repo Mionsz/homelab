@@ -2,7 +2,14 @@ app-template:
   controllers:
     main:
       containers:
-        main:
+        homepage:
+          env:
+          - name: HOMEPAGE_ALLOWED_HOSTS
+            value: homepage.vsval.intel.com
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
           image:
             repository: ghcr.io/gethomepage/homepage
             tag: v1.2.0
@@ -11,6 +18,7 @@ app-template:
       ports:
         http:
           port: 31310
+          targetPort: 3000
           protocol: HTTP
   ingress:
     main:
@@ -25,7 +33,7 @@ app-template:
             - path: /
               pathType: Prefix
               service:
-                name: main
+                name: homepage
                 port: 31310
       tls:
         - hosts:
@@ -35,7 +43,7 @@ app-template:
     config:
       enabled: true
       type: configMap
-      name: config
+      name: homepage
       globalMounts:
         - path: /app/config/settings.yaml
           subPath: settings.yaml
@@ -45,11 +53,29 @@ app-template:
           subPath: services.yaml
         - path: /app/config/bookmarks.yaml
           subPath: bookmarks.yaml
+        - path: /app/config/kubernetes.yaml
+          subPath: kubernetes.yaml
+        - path: /app/config/docker.yaml
+          subPath: docker.yaml
+        - path: /app/config/custom.js
+          subPath: custom.js
+        - path: /app/config/custom.css
+          subPath: custom.css
   configMaps:
-    config:
+    homepage:
       enabled: true
       data:
+        docker.yaml: ""
+        kubernetes.yaml: |
+          mode: cluster
+        custom.css: ""
+        custom.js: ""
         settings.yaml: |
+          providers:
+            longhorn:
+              username: "admin"
+              password: "adminintel123!"
+              url: longhorn.vsval.intel.com
           background: https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80
           cardBlur: md
           theme: dark
